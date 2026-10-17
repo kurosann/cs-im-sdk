@@ -18,6 +18,7 @@ type Client struct {
 	baseURL    string
 	appToken   string
 	httpClient *http.Client
+	sseClient  *http.Client
 }
 
 func NewClient(baseURL, appToken string) *Client {
@@ -25,6 +26,7 @@ func NewClient(baseURL, appToken string) *Client {
 		baseURL:    trimTrailingSlash(baseURL),
 		appToken:   appToken,
 		httpClient: &http.Client{Timeout: defaultTimeout},
+		sseClient:  &http.Client{},
 	}
 }
 
