@@ -21,7 +21,10 @@ type realtimeEvent struct {
 	At   string          `json:"at"`
 }
 
-func (c *Client) SubscribeAgentMessages(ctx context.Context, conversationID string) (<-chan AgentMessage, func(), error) {
+func (c *Client) SubscribeAgentMessages(ctx context.Context, appID, conversationID string) (<-chan AgentMessage, func(), error) {
+	if appID == "" {
+		return nil, nil, fmt.Errorf("appId is required")
+	}
 	if conversationID == "" {
 		return nil, nil, fmt.Errorf("conversationId is required")
 	}
@@ -29,14 +32,14 @@ func (c *Client) SubscribeAgentMessages(ctx context.Context, conversationID stri
 	if conversationID == "" {
 		return nil, nil, fmt.Errorf("conversationId is required")
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+"/ws/v1/realtime", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+"/api/v1/channels/"+appID+"/realtime", nil)
 	if err != nil {
 		return nil, nil, fmt.Errorf("create realtime request: %w", err)
 	}
 	req.Header.Set("Authorization", "Bearer "+c.appToken)
 	req.Header.Set("Accept", "text/event-stream")
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.sseClient.Do(req)
 	if err != nil {
 		return nil, nil, fmt.Errorf("connect realtime: %w", err)
 	}

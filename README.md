@@ -2,6 +2,8 @@
 
 业务渠道接入 SDK。渠道通过此 SDK 将客户消息提交到 cs-im-server，并接收客服回复推送到渠道。
 
+接口契约见 [docs/API.md](docs/API.md)。后续 TypeScript / JavaScript SDK 必须按该文档和 proto 保持同一语义。
+
 ## 契约
 
 - proto 源文件：`proto/gateway/v1/channel_gateway.proto`
@@ -36,8 +38,11 @@ func main() {
 
 	// 发送客户消息
 	msg, err := client.SendCustomerMessage(context.Background(), csim.SendCustomerMessageRequest{
+		AppID:          "app_xxx",
 		ConversationID: "conv_xxx",
 		CustomerID:     "cus_xxx",
+		ExternalID:     "wa-message-id-001",
+		SentAt:         time.Now(),
 		Text:           "你好，我需要帮助",
 	})
 	if err != nil {
@@ -48,7 +53,7 @@ func main() {
 	// 订阅客服回复
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	events, closeFn, err := client.SubscribeAgentMessages(ctx, "conv_xxx")
+	events, closeFn, err := client.SubscribeAgentMessages(ctx, "app_xxx", "conv_xxx")
 	if err != nil {
 		panic(err)
 	}

@@ -10,6 +10,9 @@ import (
 
 func TestSubscribeAgentMessagesFiltersCustomerMessages(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v1/channels/app_1/realtime" {
+			t.Fatalf("realtime path = %s", r.URL.Path)
+		}
 		if r.Header.Get("Accept") != "text/event-stream" {
 			t.Fatalf("Accept header = %q", r.Header.Get("Accept"))
 		}
@@ -25,7 +28,7 @@ func TestSubscribeAgentMessagesFiltersCustomerMessages(t *testing.T) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	events, closeFn, err := NewClient(server.URL, "token").SubscribeAgentMessages(ctx, "conv_1")
+	events, closeFn, err := NewClient(server.URL, "token").SubscribeAgentMessages(ctx, "app_1", "conv_1")
 	if err != nil {
 		t.Fatalf("SubscribeAgentMessages() error = %v", err)
 	}
