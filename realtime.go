@@ -8,10 +8,12 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+
+	"github.com/kurosann/cs-im-sdk/model"
 )
 
 type AgentMessage struct {
-	Message
+	model.Message
 }
 
 type realtimeEvent struct {
@@ -70,7 +72,7 @@ func (c *Client) SubscribeAgentMessages(ctx context.Context, conversationID stri
 			if event.Type != "message.created" {
 				continue
 			}
-			var message Message
+			var message model.Message
 			if err := json.Unmarshal(event.Data, &message); err != nil {
 				continue
 			}
