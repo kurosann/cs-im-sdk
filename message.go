@@ -5,8 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/kurosann/cs-im-sdk/model"
+	"time"
 )
 
 type SendCustomerMessageRequest struct {
@@ -16,7 +15,31 @@ type SendCustomerMessageRequest struct {
 	Text           string
 }
 
-func (c *Client) SendCustomerMessage(ctx context.Context, req SendCustomerMessageRequest) (*model.Message, error) {
+type Message struct {
+	ID             string        `json:"messageId"`
+	Seq            int64         `json:"seq"`
+	ConversationID string        `json:"conversationId"`
+	CustomerID     string        `json:"customerId"`
+	Sender         MessageSender `json:"sender"`
+	Source         MessageSource `json:"source,omitempty"`
+	Type           string        `json:"type"`
+	Text           string        `json:"text,omitempty"`
+	Status         string        `json:"status"`
+	CreatedAt      time.Time     `json:"createdAt"`
+	UpdatedAt      time.Time     `json:"updatedAt"`
+}
+
+type MessageSender struct {
+	Role string `json:"role"`
+	ID   string `json:"id"`
+}
+
+type MessageSource struct {
+	AppID      string `json:"appId,omitempty"`
+	ExternalID string `json:"externalId,omitempty"`
+}
+
+func (c *Client) SendCustomerMessage(ctx context.Context, req SendCustomerMessageRequest) (*Message, error) {
 	if req.ConversationID == "" {
 		return nil, fmt.Errorf("conversationId is required")
 	}
@@ -46,7 +69,7 @@ func (c *Client) SendCustomerMessage(ctx context.Context, req SendCustomerMessag
 	if err != nil {
 		return nil, err
 	}
-	var message model.Message
+	var message Message
 	if err := json.Unmarshal(data, &message); err != nil {
 		return nil, fmt.Errorf("parse message response: %w", err)
 	}
