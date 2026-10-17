@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package cs.im.gateway.v1;
+
+option go_package = "github.com/kurosann/cs-im-sdk/gateway/v1;gatewayv1";
+
+service ChannelGatewayService {
+  rpc EnsureConversation(EnsureConversationRequest) returns (ConversationResponse);
+  rpc SendMessage(SendMessageRequest) returns (MessageResponse);
+  rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse);
+  rpc StreamMessages(StreamMessagesRequest) returns (stream MessageEventResponse);
+}
+
+message EnsureConversationRequest {
+  string app_id = 1;
+  string customer_external_id = 2;
+  string customer_name = 3;
+  string channel = 4;
+  string subject = 5;
+}
+
+message ConversationResponse {
+  string conversation_id = 1;
+  string app_id = 2;
+  string customer_id = 3;
+  string channel = 4;
+  string subject = 5;
+  string status = 6;
+  bool created = 7;
+}
+
+message MessageSender {
+  string role = 1;
+  string id = 2;
+}
+
+message MessageSource {
+  string app_id = 1;
+  string external_id = 2;
+  string sent_at = 3;
+}
+
+message Message {
+  string message_id = 1;
+  int64 seq = 2;
+  string conversation_id = 3;
+  string customer_id = 4;
+  MessageSender sender = 5;
+  MessageSource source = 6;
+  string type = 7;
+  string text = 8;
+  string status = 9;
+  string received_at = 10;
+  string created_at = 11;
+  string updated_at = 12;
+}
+
+message SendMessageRequest {
+  string app_id = 1;
+  string conversation_id = 2;
+  string customer_id = 3;
+  MessageSender sender = 4;
+  MessageSource source = 5;
+  string type = 6;
+  string text = 7;
+}
+
+message MessageResponse {
+  Message message = 1;
+}
+
+message ListMessagesRequest {
+  string app_id = 1;
+  string conversation_id = 2;
+  int64 after_seq = 3;
+  int64 before_seq = 4;
+  int32 limit = 5;
+  string order = 6;
+}
+
+message ListMessagesResponse {
+  repeated Message items = 1;
+  int64 next_after_seq = 2;
+  int64 next_before_seq = 3;
+  bool has_more = 4;
+}
+
+message StreamMessagesRequest {
+  string app_id = 1;
+}
+
+message MessageEventResponse {
+  Message message = 1;
+}

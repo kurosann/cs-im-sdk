@@ -26,6 +26,9 @@ func (c *Client) SubscribeAgentMessages(ctx context.Context, conversationID stri
 		return nil, nil, fmt.Errorf("conversationId is required")
 	}
 
+	if conversationID == "" {
+		return nil, nil, fmt.Errorf("conversationId is required")
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+"/ws/v1/realtime", nil)
 	if err != nil {
 		return nil, nil, fmt.Errorf("create realtime request: %w", err)

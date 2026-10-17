@@ -2,6 +2,14 @@
 
 业务渠道接入 SDK。渠道通过此 SDK 将客户消息提交到 cs-im-server，并接收客服回复推送到渠道。
 
+## 契约
+
+- proto 源文件：`proto/gateway/v1/channel_gateway.proto`
+- 生成代码：`gateway/v1/channel_gateway.pb.go`、`gateway/v1/channel_gateway_grpc.pb.go`
+- 重新生成：`make proto`
+
+生成代码只由 proto 变更后重新生成，不要手工修改 `*.pb.go`。
+
 ## 能力边界
 
 - **可以**：发送客户消息（`sender.role` 固定为 `customer`）
