@@ -1,8 +1,14 @@
 # cs-im-sdk
 
-业务渠道接入 SDK。渠道通过此 SDK 将客户消息提交到 cs-im-server，并接收客服回复推送到渠道。
+业务渠道接入 SDK。WhatsApp、Telegram、网页客服等业务采集端通过它将客户消息提交到 CS IM，并接收客服回复推送。
 
 接口契约见 [docs/API.md](docs/API.md)。后续 TypeScript / JavaScript SDK 必须按该文档和 proto 保持同一语义。
+
+## 架构位置
+
+```text
+业务渠道 -> cs-im-sdk -> cs-im-server/channel -> gateway
+```
 
 ## 契约
 
