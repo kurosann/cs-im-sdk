@@ -16,6 +16,7 @@ type SendCustomerMessageRequest struct {
 	SentAt         time.Time
 	Type           string
 	Text           string
+	Content        *MessageContent
 }
 
 type Message struct {
@@ -41,6 +42,18 @@ type MessageSource struct {
 	AppID      string `json:"appId,omitempty"`
 	ExternalID string `json:"externalId,omitempty"`
 	SentAt     string `json:"sentAt,omitempty"`
+}
+
+type MessageContent struct {
+	URL             string `json:"url"`
+	MimeType        string `json:"mimeType,omitempty"`
+	FileName        string `json:"fileName,omitempty"`
+	Size            int64  `json:"size,omitempty"`
+	Width           int    `json:"width,omitempty"`
+	Height          int    `json:"height,omitempty"`
+	DurationSeconds int    `json:"duration,omitempty"`
+	ThumbnailURL    string `json:"thumbnailUrl,omitempty"`
+	Checksum        string `json:"checksum,omitempty"`
 }
 
 type Conversation struct {
@@ -84,9 +97,6 @@ func (c *Client) SendCustomerMessage(ctx context.Context, req SendCustomerMessag
 	if req.CustomerID == "" {
 		return nil, fmt.Errorf("customerId is required")
 	}
-	if req.Text == "" {
-		return nil, fmt.Errorf("text is required")
-	}
 	if req.ExternalID == "" {
 		return nil, fmt.Errorf("externalId is required")
 	}
@@ -96,6 +106,21 @@ func (c *Client) SendCustomerMessage(ctx context.Context, req SendCustomerMessag
 	msgType := req.Type
 	if msgType == "" {
 		msgType = "text"
+	}
+	switch msgType {
+	case "text":
+		if req.Text == "" {
+			return nil, fmt.Errorf("text is required")
+		}
+		if req.Content != nil {
+			return nil, fmt.Errorf("content is not allowed for text messages")
+		}
+	case "image", "file", "video":
+		if req.Content == nil || req.Content.URL == "" {
+			return nil, fmt.Errorf("content.url is required")
+		}
+	default:
+		return nil, fmt.Errorf("unsupported message type: %s", msgType)
 	}
 
 	payload := map[string]any{
@@ -112,6 +137,9 @@ func (c *Client) SendCustomerMessage(ctx context.Context, req SendCustomerMessag
 			"externalId": req.ExternalID,
 			"sentAt":     req.SentAt.UTC().Format(time.RFC3339Nano),
 		},
+	}
+	if req.Content != nil {
+		payload["content"] = req.Content
 	}
 
 	data, err := c.do(ctx, http.MethodPost, "/api/v1/channels/"+req.AppID+"/messages", payload)

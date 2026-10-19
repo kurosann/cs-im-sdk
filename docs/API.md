@@ -19,6 +19,7 @@ SDK 不提供：
 - 接收客户消息回推
 - App、员工、租户等管理接口
 - 转发渠道私有接口
+- 文件上传、媒体存储、转码和内容审核
 
 `sender.role` 由 SDK 固定为 `customer`。即使底层 HTTP 请求体可写，语言 SDK 的公共类型也不应暴露修改角色或发送客服消息的能力。
 
@@ -88,6 +89,18 @@ interface MessageSource {
   sentAt?: string;
 }
 
+interface MessageContent {
+  url: string;
+  mimeType?: string;
+  fileName?: string;
+  size?: number;
+  width?: number;
+  height?: number;
+  durationSeconds?: number;
+  thumbnailUrl?: string;
+  checksum?: string;
+}
+
 interface Message {
   messageId: string;
   seq: number;
@@ -97,6 +110,7 @@ interface Message {
   source?: MessageSource;
   type: string;
   text?: string;
+  content?: MessageContent;
   status: string;
   createdAt: string;
   updatedAt: string;
@@ -110,6 +124,7 @@ interface Message {
 - `source.externalId`：渠道侧唯一消息 ID，用于服务端幂等去重。
 - `source.sentAt`：客户在渠道实际发送时间。这是业务时间；服务端另有接收时间。
 - `createdAt`：优先返回客户实际发送时间，否则返回服务端接收时间。
+- `content`：媒体引用。`type` 为 `image`、`file`、`video` 时存在；`url` 由调用方保证可访问。
 
 ## HTTP API
 
@@ -177,9 +192,37 @@ POST /api/v1/channels/{appId}/messages
 }
 ```
 
+媒体消息示例：
+
+```json
+{
+  "conversationId": "conv_123",
+  "customerId": "cus_123",
+  "sender": {
+    "role": "customer",
+    "id": "cus_123"
+  },
+  "type": "image",
+  "text": "截图说明",
+  "content": {
+    "url": "https://cdn.example.com/photo.png",
+    "mimeType": "image/png",
+    "fileName": "photo.png",
+    "size": 102400,
+    "width": 1280,
+    "height": 720
+  },
+  "source": {
+    "appId": "app_123",
+    "externalId": "wa-message-id-002",
+    "sentAt": "2025-01-01T08:01:00.123456789Z"
+  }
+}
+```
+
 响应 `data` 是单个 `Message`。
 
-必填项：
+文本消息必填项：
 
 - `conversationId`
 - `customerId`
@@ -189,6 +232,9 @@ POST /api/v1/channels/{appId}/messages
 
 规则：
 
+- `type` 支持 `text`、`image`、`file`、`video`；默认是 `text`。
+- 媒体消息必须传 `content.url`，协议必须是 `http` 或 `https`；`text` 作为可选说明文字。
+- 服务端不负责文件上传和下载，也不保证外部 URL 长期可访问。
 - `sender.role` 固定为 `customer`。
 - `sender.id` 必须等于 `conversation.customerId`。
 - `conversationId` 必须属于路径中的 `appId`。

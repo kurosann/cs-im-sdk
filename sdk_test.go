@@ -76,6 +76,33 @@ func TestSendCustomerMessage(t *testing.T) {
 	}
 }
 
+func TestSendCustomerMediaMessage(t *testing.T) {
+	var gotPayload struct {
+		Type    string         `json:"type"`
+		Text    string         `json:"text"`
+		Content MessageContent `json:"content"`
+	}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewDecoder(r.Body).Decode(&gotPayload)
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"code":"OK","data":{"messageId":"msg_1","type":"image"}}`))
+	}))
+	defer server.Close()
+
+	content := &MessageContent{URL: "https://cdn.example.com/photo.png", MimeType: "image/png", FileName: "photo.png"}
+	message, err := NewClient(server.URL, "token").SendCustomerMessage(context.Background(), SendCustomerMessageRequest{
+		AppID: "app_1", ConversationID: "conv_1", CustomerID: "cus_1",
+		ExternalID: "external-1", SentAt: time.Now(), Type: "image",
+		Text: "photo", Content: content,
+	})
+	if err != nil {
+		t.Fatalf("SendCustomerMessage(image) error = %v", err)
+	}
+	if message.Type != "image" || gotPayload.Content.URL != content.URL || gotPayload.Content.FileName != content.FileName {
+		t.Fatalf("SendCustomerMessage(image) response = %+v payload = %+v", message, gotPayload)
+	}
+}
+
 func TestSendCustomerMessageValidations(t *testing.T) {
 	if _, err := NewClient("http://localhost", "token").SendCustomerMessage(context.Background(), SendCustomerMessageRequest{
 		AppID: "app_1", ConversationID: "conv_1", CustomerID: "cus_1",
@@ -88,6 +115,12 @@ func TestSendCustomerMessageValidations(t *testing.T) {
 		ExternalID: "external-1", Text: "hello",
 	}); err == nil {
 		t.Fatal("SendCustomerMessage() expected missing sentAt error")
+	}
+	if _, err := NewClient("http://localhost", "token").SendCustomerMessage(context.Background(), SendCustomerMessageRequest{
+		AppID: "app_1", ConversationID: "conv_1", CustomerID: "cus_1",
+		ExternalID: "external-1", SentAt: time.Now(), Type: "image",
+	}); err == nil {
+		t.Fatal("SendCustomerMessage(image) expected missing content error")
 	}
 }
 

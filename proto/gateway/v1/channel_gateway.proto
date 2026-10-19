@@ -40,6 +40,18 @@ message MessageSource {
   string sent_at = 3;
 }
 
+message MessageContent {
+  string url = 1;
+  string mime_type = 2;
+  string file_name = 3;
+  int64 size = 4;
+  int32 width = 5;
+  int32 height = 6;
+  int32 duration_seconds = 7;
+  string thumbnail_url = 8;
+  string checksum = 9;
+}
+
 message Message {
   string message_id = 1;
   int64 seq = 2;
@@ -49,10 +61,11 @@ message Message {
   MessageSource source = 6;
   string type = 7;
   string text = 8;
-  string status = 9;
-  string received_at = 10;
-  string created_at = 11;
-  string updated_at = 12;
+  MessageContent content = 9;
+  string status = 10;
+  string received_at = 11;
+  string created_at = 12;
+  string updated_at = 13;
 }
 
 message SendMessageRequest {
@@ -63,6 +76,7 @@ message SendMessageRequest {
   MessageSource source = 5;
   string type = 6;
   string text = 7;
+  MessageContent content = 8;
 }
 
 message MessageResponse {
