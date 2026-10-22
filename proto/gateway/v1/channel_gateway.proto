@@ -6,6 +6,7 @@ option go_package = "github.com/kurosann/cs-im-sdk/gateway/v1;gatewayv1";
 
 service ChannelGatewayService {
   rpc EnsureConversation(EnsureConversationRequest) returns (ConversationResponse);
+  rpc GetConversation(GetConversationRequest) returns (ConversationResponse);
   rpc SendMessage(SendMessageRequest) returns (MessageResponse);
   rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse);
   rpc StreamMessages(StreamMessagesRequest) returns (stream MessageEventResponse);
@@ -17,6 +18,11 @@ message EnsureConversationRequest {
   string customer_name = 3;
   string channel = 4;
   string subject = 5;
+}
+
+message GetConversationRequest {
+  string app_id = 1;
+  string conversation_id = 2;
 }
 
 message ConversationResponse {
